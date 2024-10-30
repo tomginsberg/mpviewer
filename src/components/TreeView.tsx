@@ -37,7 +37,7 @@ const TreeView: React.FC<TreeViewProps> = ({ node, level = 0 }) => {
   const [isExpanded, setIsExpanded] = React.useState(level < 2);
 
   const hasChildren = node.children.length > 0;
-  const paddingLeft = `${level * 1.5}rem`;
+  const paddingLeft = `${level * 0.5}rem`;
 
   return (
     <div>
@@ -56,9 +56,9 @@ const TreeView: React.FC<TreeViewProps> = ({ node, level = 0 }) => {
           ) : (
             <MapPin className="w-5 h-5 text-gray-500" />
           )}
-          <span className="ml-2 font-medium">{node.name}</span>
+          <span className="ml-1 font-medium">{node.name}</span>
           {node.routes.length > 0 && (
-            <span className="ml-2 text-sm text-gray-500">
+            <span className="ml-1 text-sm text-gray-500">
               ({node.routes.length} route{node.routes.length !== 1 ? 's' : ''})
             </span>
           )}
@@ -66,14 +66,14 @@ const TreeView: React.FC<TreeViewProps> = ({ node, level = 0 }) => {
       )}
       
       {isExpanded && (
-        <div className="ml-4">
+        <>
           {node.routes.map((route, index) => (
             <RouteCard key={`${route.Route}-${index}`} route={route} />
           ))}
           {node.children.map((child, index) => (
             <TreeView key={`${child.name}-${index}`} node={child} level={level + 1} />
           ))}
-        </div>
+        </>
       )}
     </div>
   );
