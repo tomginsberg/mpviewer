@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .route-card {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .route-card:hover {
+    @apply transform -translate-y-1;
+  }
+}
