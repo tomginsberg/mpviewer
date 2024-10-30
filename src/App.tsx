@@ -71,63 +71,30 @@ function buildLocationTree(routes: Route[], selectedGrades: string[]): TreeNode 
     return root;
 }
 
+import Papa from 'papaparse';
+
 function parseCSV(text: string): Route[] {
     try {
-        const lines = text.split(/\r?\n/);
-        if (lines.length < 2) throw new Error('File appears to be empty');
+        const { data, errors } = Papa.parse<Record<string, string | number>>(text, {
+            header: true, // Use the first row as headers
+            skipEmptyLines: true, // Ignore empty lines
+            dynamicTyping: (field) => field !== 'Rating', // Keep Rating as string
+        });
 
-        const parseCSVLine = (line: string): string[] => {
-            const values: string[] = [];
-            let currentValue = '';
-            let insideQuotes = false;
+        if (errors.length > 0) {
+            console.error('CSV Parsing Errors:', errors);
+            throw new Error('CSV parsing failed');
+        }
 
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-
-                if (char === '"') {
-                    if (insideQuotes && line[i + 1] === '"') {
-                        currentValue += '"';
-                        i++;
-                    } else {
-                        insideQuotes = !insideQuotes;
-                    }
-                } else if (char === ',' && !insideQuotes) {
-                    values.push(currentValue.trim());
-                    currentValue = '';
-                } else {
-                    currentValue += char;
-                }
-            }
-
-            values.push(currentValue.trim());
-            return values;
-        };
-
-        const headers = parseCSVLine(lines[0]);
-        if (headers.length < 2) throw new Error('Invalid file format');
-
-        return lines.slice(1)
-            .filter(line => line.trim())
-            .map(line => {
-                const values = parseCSVLine(line);
-                if (values.length !== headers.length) {
-                    throw new Error('Invalid row format. Number of values doesn\'t match headers');
-                }
-
-                const route: any = {};
-                headers.forEach((header, index) => {
-                    const value = values[index];
-                    if (value === '-1' || (!isNaN(Number(value)) && value !== '')) {
-                        route[header] = Number(value);
-                    } else {
-                        route[header] = value;
-                    }
-                });
-
-                return route as Route;
-            });
+        // Optional: Validate or transform data if needed.
+        return data.map((row) => ({
+            ...row,
+            Rating: row.Rating ? String(row.Rating).trim() : '', // Ensure Rating is a string
+        })) as Route[];
     } catch (error) {
-        throw new Error(`Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+            `Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
     }
 }
 
@@ -136,7 +103,10 @@ function extractUniqueGrades(routes: Route[]): string[] {
 
     routes.forEach(route => {
         if (route.Rating) {
+            //
             const grade = route.Rating.toString().split(' ')[0]; // Split by space and take first element
+            // check if there is a string in the name
+
             gradeSet.add(grade);
         }
     });
